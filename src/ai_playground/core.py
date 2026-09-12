@@ -1,7 +1,8 @@
 import os
+import sys
 
 import httpx
-from httpx import Response, URL, HTTPError, HTTPStatusError
+from httpx import Response, HTTPError, HTTPStatusError
 
 import dotenv
 

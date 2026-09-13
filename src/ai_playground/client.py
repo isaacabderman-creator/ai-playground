@@ -3,6 +3,7 @@ import sys
 
 import httpx
 from httpx import Response, HTTPError, HTTPStatusError
+from ai_playground.response_model import ModelResponse
 
 import dotenv
 
@@ -33,12 +34,12 @@ class GeminiClient:
             response: Response = self.client.post(
                 f"/models/{self.model}:generateContent", json=self.context
             )
-            data = response.raise_for_status().json()
+            model_response = ModelResponse(**response.raise_for_status().json())
         except HTTPStatusError as error:
             raise RuntimeError(f"HTTP Status Error: {error}")
         except HTTPError as error:
             raise RuntimeError(f"HTTP Error: {error}")
-        answer = data["candidates"][0]["content"]["parts"][0]["text"]
+        answer = model_response.candidates[0].content.parts[0].text
 
         part = {"role": "model", "parts": [{"text": answer}]}
         self.context["contents"].append(part)

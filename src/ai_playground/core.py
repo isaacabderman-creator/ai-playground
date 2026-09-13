@@ -43,21 +43,26 @@ class GeminiClient:
         _part = {"role": "model", "parts": [{"text": answer}]}
         self.context["contents"].append(_part)
 
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.client.close()
+
 
 if __name__ == "__main__":
-    client = GeminiClient()
-    while True:
-        try:
-            prompt = input("user > ")
-            response = client.reply(prompt)
-        except EOFError:
-            sys.exit(0)
-        except RuntimeError as e:
-            print(e)
-            continue
-        try:
-            answer = response["candidates"][0]["content"]["parts"][0]["text"]
-            client.insert_answer(answer)
-            print("model > ", answer)
-        except Exception as e:
-            print(e)
+    with GeminiClient() as client:
+        while True:
+            try:
+                prompt = input("user > ")
+                response = client.reply(prompt)
+            except (EOFError, KeyboardInterrupt):
+                sys.exit(0)
+            except RuntimeError as e:
+                print(e)
+                continue
+            try:
+                answer = response["candidates"][0]["content"]["parts"][0]["text"]
+                client.insert_answer(answer)
+                print("model > ", answer)
+            except Exception as e:
+                print(e)

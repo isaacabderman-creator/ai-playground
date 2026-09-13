@@ -30,26 +30,27 @@ class GeminiClient:
         _part = {"role": "user", "parts": [{"text": prompt}]}
         self.context["contents"].append(_part)
         try:
-            _response: Response = self.client.post(
+            response: Response = self.client.post(
                 f"/models/{self.model}:generateContent", json=self.context
             )
-            return _response.raise_for_status().json()
+            return response.raise_for_status().json()
         except HTTPStatusError as error:
             raise RuntimeError(f"HTTP Status Error: {error}")
         except HTTPError as error:
             raise RuntimeError(f"HTTP Error: {error}")
 
     def insert_answer(self, answer: str) -> None:
-        _part = {"role": "model", "parts": [{"text": answer}]}
-        self.context["contents"].append(_part)
+        part = {"role": "model", "parts": [{"text": answer}]}
+        self.context["contents"].append(part)
 
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.client.close()
 
 
-if __name__ == "__main__":
+def main() -> None:
     with GeminiClient() as client:
         while True:
             try:
@@ -66,3 +67,7 @@ if __name__ == "__main__":
                 print("model > ", answer)
             except Exception as e:
                 print(e)
+
+
+if __name__ == "__main__":
+    main()

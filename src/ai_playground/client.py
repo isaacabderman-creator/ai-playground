@@ -25,46 +25,23 @@ class GeminiClient:
                 "Content-Type": "application/json",
             },
         )
-        self.context = {"contents": []}
 
-    def reply(self, prompt: str) -> str:
-        _part = {"role": "user", "parts": [{"text": prompt}]}
-        self.context["contents"].append(_part)
+    def generate(self, text: str, context: dict | None = None) -> ModelResponse:
+        if context is None:
+            context = {"contents": [{"parts": [{"text": text}]}]}
         try:
-            response: Response = self.client.post(
-                f"/models/{self.model}:generateContent", json=self.context
+            response = (
+                self.client.post(f"models/{self.model}:generateContent", json=context)
+                .raise_for_status()
+                .json()
             )
-            model_response = ModelResponse(**response.raise_for_status().json())
-        except HTTPStatusError as error:
-            raise RuntimeError(f"HTTP Status Error: {error}")
-        except HTTPError as error:
-            raise RuntimeError(f"HTTP Error: {error}")
-        answer = model_response.candidates[0].content.parts[0].text
 
-        part = {"role": "model", "parts": [{"text": answer}]}
-        self.context["contents"].append(part)
-        return answer
+            return ModelResponse.model_validate(response)
+        except HTTPError as e:
+            raise RuntimeError(e)
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.client.close()
-
-
-def main() -> None:
-    with GeminiClient() as client:
-        while True:
-            try:
-                prompt = input("user > ")
-                answer = client.reply(prompt)
-            except (EOFError, KeyboardInterrupt):
-                sys.exit(0)
-            except RuntimeError as e:
-                print(e)
-                continue
-            print("model > ", answer)
-
-
-if __name__ == "__main__":
-    main()

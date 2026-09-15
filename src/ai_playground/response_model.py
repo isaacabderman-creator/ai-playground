@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class Part(BaseModel):
-    text: str
+    text: str | None
 
 
 class Content(BaseModel):
@@ -17,6 +17,15 @@ class Candidate(BaseModel):
     content: Content
     finishReason: str
     index: int
+
+
+class SystemInstruction(BaseModel):
+    parts: list[Part]
+
+
+class ModelQuery(BaseModel):
+    contents: list[Content]
+    systemInstruction: SystemInstruction | None = None
 
 
 class ModelResponse(BaseModel):

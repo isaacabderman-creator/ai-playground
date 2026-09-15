@@ -12,7 +12,7 @@ class ChatSession:
     def chat(self, text):
         part = {"role": "user", "parts": [{"text": text}]}
         self.context["contents"].append(part)
-        response: ModelResponse = self.client.generate(text, self.context)
+        response: ModelResponse = self.client.generate(self.context["contents"])
         answer = response.candidates[0].content.parts[0].text
         part = {"role": "model", "parts": [{"text": answer}]}
         self.context["contents"].append(part)

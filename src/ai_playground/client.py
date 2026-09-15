@@ -3,7 +3,13 @@ import sys
 
 import httpx
 from httpx import Response, HTTPError, HTTPStatusError
-from ai_playground.response_model import ModelResponse
+from ai_playground.response_model import (
+    ModelResponse,
+    SystemInstruction,
+    Part,
+    ModelQuery,
+    Content,
+)
 
 import dotenv
 
@@ -26,12 +32,23 @@ class GeminiClient:
             },
         )
 
-    def generate(self, text: str, context: dict | None = None) -> ModelResponse:
-        if context is None:
-            context = {"contents": [{"parts": [{"text": text}]}]}
+    def generate(
+        self, contents: list[Content], system_prompt: str | None = None
+    ) -> ModelResponse:
+        system_instruction = (
+            SystemInstruction(parts=[Part(text=system_prompt)])
+            if system_prompt
+            else None
+        )
+        model_query = ModelQuery(
+            contents=contents, systemInstruction=system_instruction
+        )
         try:
             response = (
-                self.client.post(f"models/{self.model}:generateContent", json=context)
+                self.client.post(
+                    f"models/{self.model}:generateContent",
+                    json=model_query.model_dump(exclude_none=True),
+                )
                 .raise_for_status()
                 .json()
             )

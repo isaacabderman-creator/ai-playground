@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class Part(BaseModel):
-    text: str | None
+    text: str
 
 
 class Content(BaseModel):
